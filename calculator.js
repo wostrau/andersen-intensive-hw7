@@ -1,87 +1,157 @@
-let displayValue = '';
-let currentInput = '';
-let currentOperator = '';
-let mode = 'withBrackets';
-let corpus = 'pc';
+const resultElement = document.getElementById('result');
+const clearButton = document.getElementById('clear');
+const deleteButton = document.getElementById('delete');
+const changeSignButton = document.getElementById('change-sign');
+const divideButton = document.getElementById('divide');
+const multiplyButton = document.getElementById('multiply');
+const sevenButton = document.getElementById('seven');
+const eightButton = document.getElementById('eight');
+const nineButton = document.getElementById('nine');
+const subtractButton = document.getElementById('subtract');
+const fourButton = document.getElementById('four');
+const fiveButton = document.getElementById('five');
+const sixButton = document.getElementById('six');
+const addButton = document.getElementById('add');
+const oneButton = document.getElementById('one');
+const twoButton = document.getElementById('two');
+const threeButton = document.getElementById('three');
+const equalsButton = document.getElementById('equals');
+const zeroButton = document.getElementById('zero');
+const decimalButton = document.getElementById('decimal');
 
-function updateDisplay() {
-  document.getElementById('display').value = displayValue;
-}
+let calculatorState = {
+  currentInput: '',
+  firstNumber: '',
+  operationSign: '',
+  isFinish: false,
+};
 
-function clearDisplay() {
-  displayValue = '';
-  currentInput = '';
-  currentOperator = '';
+function clearInput() {
+  calculatorState = {
+    ...calculatorState,
+    currentInput: '',
+  };
   updateDisplay();
 }
 
 function deleteLast() {
-  displayValue = displayValue.slice(0, -1);
+  calculatorState = {
+    ...calculatorState,
+    currentInput: calculatorState.currentInput.slice(0, -1),
+  };
   updateDisplay();
 }
 
-function appendSymbol(symbol) {
-  if (symbol === '.' && currentInput.includes('.')) {
-    return;
-  }
-
-  currentInput += symbol;
-  displayValue = currentInput;
+function appendNumber(number) {
+  calculatorState = {
+    ...calculatorState,
+    currentInput: calculatorState.currentInput + number,
+  };
   updateDisplay();
 }
 
-function setOperator(operator) {
-  if (currentOperator !== '') {
-    calculate();
+function appendOperation(operation) {
+  if (calculatorState.currentInput !== '') {
+    calculatorState = {
+      ...calculatorState,
+      firstNumber: calculatorState.currentInput,
+      currentInput: '',
+      operationSign: operation,
+    };
+    updateDisplay();
   }
+}
 
-  currentInput = displayValue;
-  currentOperator = operator;
-  displayValue = '';
-  updateDisplay();
+function appendDecimal() {
+  if (calculatorState.currentInput.indexOf('.') === -1) {
+    calculatorState = {
+      ...calculatorState,
+      currentInput: calculatorState.currentInput + '.',
+    };
+    updateDisplay();
+  }
 }
 
 function calculate() {
-  if (currentOperator === '' || currentInput === '') {
-    return;
+  try {
+    calculatorState = {
+      ...calculatorState,
+      currentInput: evaluateExpression(calculatorState.currentInput),
+      firstNumber: '',
+      operationSign: '',
+    };
+    updateDisplay();
+  } catch (error) {
+    calculatorState = {
+      ...calculatorState,
+      currentInput: 'Error',
+      firstNumber: '',
+      operationSign: '',
+    };
+    updateDisplay();
   }
-
-  const num1 = parseFloat(currentInput);
-  const num2 = parseFloat(displayValue);
-
-  if (isNaN(num1) || isNaN(num2)) {
-    displayValue = 'Ошибка';
-  } else {
-    switch (currentOperator) {
-      case '+':
-        displayValue = (num1 + num2).toFixed(8);
-        break;
-      case '-':
-        displayValue = (num1 - num2).toFixed(8);
-        break;
-      case '*':
-        displayValue = (num1 * num2).toFixed(8);
-        break;
-      case '/':
-        if (num2 !== 0) {
-          displayValue = (num1 / num2).toFixed(8);
-        } else {
-          displayValue = 'Ошибка';
-        }
-        break;
-      case '%':
-        displayValue = (num1 % num2).toFixed(8);
-        break;
-      default:
-        displayValue = 'Ошибка';
-    }
-  }
-
-  currentInput = '';
-  currentOperator = '';
-  updateDisplay();
 }
 
-function changeMode() {
-  mode = document.getElementById('mode').value;
+function changeSign() {
+  if (calculatorState.currentInput !== '') {
+    calculatorState = {
+      ...calculatorState,
+      currentInput:
+        calculatorState.currentInput.charAt(0) === '-'
+          ? calculatorState.currentInput.slice(1)
+          : '-' + calculatorState.currentInput,
+    };
+    updateDisplay();
+  }
 }
+
+function evaluateExpression(expression) {
+  let firstNumber = parseFloat(calculatorState.firstNumber);
+  let secondNumber = parseFloat(calculatorState.currentInput);
+
+  switch (calculatorState.operationSign) {
+    case '+':
+      return firstNumber + secondNumber;
+    case '-':
+      return firstNumber - secondNumber;
+    case '*':
+      return firstNumber * secondNumber;
+    case '/':
+      if (secondNumber !== 0) {
+        return roundToEightDecimalPlaces(firstNumber / secondNumber);
+      } else {
+        throw new Error('Division by zero');
+      }
+    default:
+      return roundToEightDecimalPlaces(secondNumber);
+  }
+}
+
+function roundToEightDecimalPlaces(number) {
+  const roundedNumber = parseFloat(number.toFixed(8));
+  return roundedNumber.toString();
+}
+
+function updateDisplay() {
+  resultElement.value = calculatorState.currentInput;
+}
+
+clearButton.addEventListener('click', clearInput);
+deleteButton.addEventListener('click', deleteLast);
+equalsButton.addEventListener('click', calculate);
+divideButton.addEventListener('click', () => appendOperation('/'));
+multiplyButton.addEventListener('click', () => appendOperation('*'));
+addButton.addEventListener('click', () => appendOperation('+'));
+subtractButton.addEventListener('click', () => appendOperation('-'));
+zeroButton.addEventListener('click', () => appendNumber('0'));
+oneButton.addEventListener('click', () => appendNumber('1'));
+twoButton.addEventListener('click', () => appendNumber('2'));
+threeButton.addEventListener('click', () => appendNumber('3'));
+fourButton.addEventListener('click', () => appendNumber('4'));
+fiveButton.addEventListener('click', () => appendNumber('5'));
+sixButton.addEventListener('click', () => appendNumber('6'));
+sevenButton.addEventListener('click', () => appendNumber('7'));
+eightButton.addEventListener('click', () => appendNumber('8'));
+nineButton.addEventListener('click', () => appendNumber('9'));
+decimalButton.addEventListener('click', () => appendDecimal());
+changeSignButton.addEventListener('click', changeSign);
