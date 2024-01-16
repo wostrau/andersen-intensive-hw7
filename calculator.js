@@ -23,7 +23,6 @@ let calculatorState = {
   currentInput: '',
   firstNumber: '',
   operationSign: '',
-  isFinish: false,
 };
 
 function clearInput() {
@@ -31,6 +30,7 @@ function clearInput() {
     ...calculatorState,
     currentInput: '',
   };
+
   updateDisplay();
 }
 
@@ -39,6 +39,7 @@ function deleteLast() {
     ...calculatorState,
     currentInput: calculatorState.currentInput.slice(0, -1),
   };
+
   updateDisplay();
 }
 
@@ -47,6 +48,7 @@ function appendNumber(number) {
     ...calculatorState,
     currentInput: calculatorState.currentInput + number,
   };
+
   updateDisplay();
 }
 
@@ -58,6 +60,7 @@ function appendOperation(operation) {
       currentInput: '',
       operationSign: operation,
     };
+
     updateDisplay();
   }
 }
@@ -68,6 +71,7 @@ function appendDecimal() {
       ...calculatorState,
       currentInput: calculatorState.currentInput + '.',
     };
+
     updateDisplay();
   }
 }
@@ -75,25 +79,28 @@ function appendDecimal() {
 function calculate() {
   try {
     calculatorState = {
-      ...calculatorState,
       currentInput: evaluateExpression(calculatorState.currentInput),
       firstNumber: '',
       operationSign: '',
     };
+
     updateDisplay();
   } catch (error) {
     calculatorState = {
-      ...calculatorState,
       currentInput: 'Error',
       firstNumber: '',
       operationSign: '',
     };
+
     updateDisplay();
   }
 }
 
 function changeSign() {
-  if (calculatorState.currentInput !== '') {
+  if (
+    typeof calculatorState.currentInput === 'string' &&
+    calculatorState.currentInput !== ''
+  ) {
     calculatorState = {
       ...calculatorState,
       currentInput:
@@ -101,6 +108,7 @@ function changeSign() {
           ? calculatorState.currentInput.slice(1)
           : '-' + calculatorState.currentInput,
     };
+
     updateDisplay();
   }
 }
@@ -111,24 +119,25 @@ function evaluateExpression(expression) {
 
   switch (calculatorState.operationSign) {
     case '+':
-      return firstNumber + secondNumber;
+      return roundValue(firstNumber + secondNumber);
     case '-':
-      return firstNumber - secondNumber;
+      return roundValue(firstNumber - secondNumber);
     case '*':
-      return firstNumber * secondNumber;
+      return roundValue(firstNumber * secondNumber);
     case '/':
       if (secondNumber !== 0) {
-        return roundToEightDecimalPlaces(firstNumber / secondNumber);
+        return roundValue(firstNumber / secondNumber);
       } else {
         throw new Error('Division by zero');
       }
     default:
-      return roundToEightDecimalPlaces(secondNumber);
+      return roundValue(secondNumber);
   }
 }
 
-function roundToEightDecimalPlaces(number) {
+function roundValue(number) {
   const roundedNumber = parseFloat(number.toFixed(8));
+
   return roundedNumber.toString();
 }
 
